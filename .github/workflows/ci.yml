@@ -55,7 +55,7 @@ jobs:
             liblayershellqtinterface-dev \
             desktop-file-utils appstream
 
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Validate desktop entry and AppStream metadata
         run: |
