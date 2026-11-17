@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- SPDX-License-Identifier: MIT -->
+<!-- SPDX-FileCopyrightText: 2026 clankercode contributors -->
+<!-- App icon for Sticky Notes (code.clanker.StickyNotes). SVG Tiny 1.2 compatible:
+     no filters, masks or text, so it renders identically in QtSvg (KIconLoader) and librsvg. -->
+<svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 128 128" version="1.1">
+  <defs>
+    <linearGradient id="gYellow" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#ffe46b"/>
+      <stop offset="1" stop-color="#fdd33a"/>
+    </linearGradient>
+    <linearGradient id="gOrange" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#ffb25b"/>
+      <stop offset="1" stop-color="#f7932b"/>
+    </linearGradient>
+    <linearGradient id="gPink" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#ff8fa6"/>
+      <stop offset="1" stop-color="#ec5f7e"/>
+    </linearGradient>
+    <linearGradient id="gCurl" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#fff6c4"/>
+      <stop offset="1" stop-color="#f2cd45"/>
+    </linearGradient>
+  </defs>
+
+  <!-- back note: pink -->
+  <g transform="rotate(-11 46 52)">
+    <rect x="8" y="16" width="78" height="76" rx="5" fill="#000000" fill-opacity="0.16" transform="translate(0 2)"/>
+    <rect x="8" y="16" width="78" height="76" rx="5" fill="url(#gPink)"/>
+    <rect x="8" y="16" width="78" height="12" rx="5" fill="#d9466a" fill-opacity="0.45"/>
+  </g>
+
+  <!-- middle note: orange -->
+  <g transform="rotate(7 62 48)">
+    <rect x="22" y="8" width="80" height="78" rx="5" fill="#000000" fill-opacity="0.16" transform="translate(0 2)"/>
+    <rect x="22" y="8" width="80" height="78" rx="5" fill="url(#gOrange)"/>
+    <rect x="22" y="8" width="80" height="12" rx="5" fill="#e07812" fill-opacity="0.45"/>
+  </g>
+
+  <!-- front note: yellow, with curled bottom-right corner -->
+  <!-- soft drop shadow -->
+  <path d="M30 34 h84 a5 5 0 0 1 5 5 v56 l-24 24 h-65 a5 5 0 0 1 -5 -5 v-75 a5 5 0 0 1 5 -5 z"
+        fill="#000000" fill-opacity="0.10" transform="translate(0 3)"/>
+  <path d="M30 34 h84 a5 5 0 0 1 5 5 v56 l-24 24 h-65 a5 5 0 0 1 -5 -5 v-75 a5 5 0 0 1 5 -5 z"
+        fill="#000000" fill-opacity="0.12" transform="translate(0 1.5)"/>
+  <!-- paper -->
+  <path d="M30 32 h84 a5 5 0 0 1 5 5 v56 l-24 24 h-65 a5 5 0 0 1 -5 -5 v-75 a5 5 0 0 1 5 -5 z"
+        fill="url(#gYellow)"/>
+  <!-- adhesive strip -->
+  <path d="M30 32 h84 a5 5 0 0 1 5 5 v9 h-94 v-9 a5 5 0 0 1 5 -5 z" fill="#f2bf1d" fill-opacity="0.55"/>
+  <!-- curl: shadow cast by the lifted corner, then the folded flap -->
+  <path d="M119 93 l-24 24 l2 -14 c1 -6 4 -9 10 -10 z" fill="#b8860b" fill-opacity="0.30"/>
+  <path d="M119 93 l-24 24 c-2 -8 -1 -13 3 -17 c4 -4 10 -6 21 -7 z" fill="url(#gCurl)"/>
+  <path d="M119 93 l-24 24" stroke="#d9a90f" stroke-opacity="0.6" stroke-width="1" fill="none"/>
+
+  <!-- markdown content -->
+  <g fill="#6b4f00" fill-opacity="0.85">
+    <!-- '#' heading glyph (slanted, drawn as shapes) -->
+    <path d="M42.5 56 l-3 22 h5 l3 -22 z"/>
+    <path d="M54.5 56 l-3 22 h5 l3 -22 z"/>
+    <rect x="36" y="61" width="26" height="4.5" rx="1"/>
+    <rect x="35" y="69" width="26" height="4.5" rx="1"/>
+    <!-- heading text line -->
+    <rect x="68" y="62" width="38" height="9" rx="4.5"/>
+    <!-- checked task item -->
+    <rect x="35" y="88" width="15" height="15" rx="3" fill="none" stroke="#6b4f00" stroke-opacity="0.85" stroke-width="4"/>
+    <path d="M38.5 95.5 l4 4 l9 -11" fill="none" stroke="#2e7d32" stroke-opacity="1" stroke-width="4"
+          stroke-linecap="round" stroke-linejoin="round"/>
+    <rect x="57" y="91.5" width="30" height="8" rx="4" fill-opacity="0.55"/>
+  </g>
+</svg>

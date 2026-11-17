@@ -1,0 +1,22 @@
+# SPDX-License-Identifier: MIT
+# SPDX-FileCopyrightText: 2026 clankercode contributors
+[Desktop Entry]
+Type=Application
+Version=1.5
+Name=Sticky Notes
+GenericName=Sticky Notes
+Comment=Markdown sticky notes for your desktop
+Exec=sticky-notes
+Icon=@STICKY_NOTES_APP_ID@
+Terminal=false
+Categories=Utility;Qt;KDE;
+Keywords=note;notes;sticky;post-it;memo;markdown;todo;reminder;
+StartupNotify=false
+StartupWMClass=sticky-notes
+SingleMainWindow=true
+Actions=NewNote;
+
+[Desktop Action NewNote]
+Name=New Note
+Icon=document-new
+Exec=sticky-notes --new

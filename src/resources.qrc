@@ -1,0 +1,7 @@
+<!DOCTYPE RCC>
+<!-- SPDX-License-Identifier: MIT -->
+<RCC version="1.0">
+    <qresource prefix="/icons">
+        <file alias="sticky-notes.svg">../data/icons/code.clanker.StickyNotes.svg</file>
+    </qresource>
+</RCC>

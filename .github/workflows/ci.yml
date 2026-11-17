@@ -1,0 +1,89 @@
+# SPDX-License-Identifier: MIT
+# SPDX-FileCopyrightText: 2026 clankercode contributors
+#
+# The project needs Qt >= 6.6. GitHub's newest hosted Ubuntu image (24.04) ships Qt 6.4, so the
+# jobs run inside an ubuntu:26.04 container (Qt 6.10, layer-shell-qt 6.6), which matches the
+# primary development/target platform (Kubuntu 26.04 / Plasma 6.6).
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: ${{ matrix.name }}
+    runs-on: ubuntu-latest
+    container: ubuntu:26.04
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: Release (layer-shell)
+            build_type: Release
+            layershell: "ON"
+          - name: Release (no layer-shell)
+            build_type: Release
+            layershell: "OFF"
+    env:
+      DEBIAN_FRONTEND: noninteractive
+      LANG: C.UTF-8
+      QT_QPA_PLATFORM: offscreen
+      CTEST_OUTPUT_ON_FAILURE: "1"
+    steps:
+      - name: Install dependencies
+        run: |
+          apt-get update
+          apt-get install -y --no-install-recommends \
+            ca-certificates git cmake ninja-build g++ \
+            qt6-base-dev qt6-base-dev-tools qt6-declarative-dev qt6-declarative-dev-tools \
+            qt6-wayland-dev \
+            qml6-module-qtquick qml6-module-qtquick-controls qml6-module-qtquick-layouts \
+            qml6-module-qtquick-templates qml6-module-qtquick-window qml6-module-qtqml-workerscript \
+            qml6-module-qttest qml6-module-qtquick-dialogs \
+            liblayershellqtinterface-dev \
+            desktop-file-utils appstream
+
+      - uses: actions/checkout@v4
+
+      - name: Validate desktop entry and AppStream metadata
+        run: |
+          sed 's/@STICKY_NOTES_APP_ID@/code.clanker.StickyNotes/g' \
+            data/code.clanker.StickyNotes.desktop.in > "$RUNNER_TEMP/code.clanker.StickyNotes.desktop"
+          desktop-file-validate "$RUNNER_TEMP/code.clanker.StickyNotes.desktop"
+          appstreamcli validate --no-net data/code.clanker.StickyNotes.metainfo.xml
+
+      - name: Configure
+        run: >
+          cmake -S . -B build -G Ninja
+          -DCMAKE_BUILD_TYPE=${{ matrix.build_type }}
+          -DSTICKY_NOTES_BUILD_TESTS=ON
+          -DSTICKY_NOTES_WITH_LAYERSHELL=${{ matrix.layershell }}
+          -DCMAKE_CXX_FLAGS="-Wall -Wextra"
+
+      - name: Build
+        run: cmake --build build --parallel
+
+      - name: Test
+        run: ctest --test-dir build --output-on-failure --timeout 120
+
+      - name: Install (staging)
+        run: |
+          DESTDIR="$RUNNER_TEMP/stage" cmake --install build --prefix /usr
+          find "$RUNNER_TEMP/stage" -type f | sort
+          test -x "$RUNNER_TEMP/stage/usr/bin/sticky-notes"
+          test -f "$RUNNER_TEMP/stage/usr/share/applications/code.clanker.StickyNotes.desktop"
+          test -f "$RUNNER_TEMP/stage/usr/share/metainfo/code.clanker.StickyNotes.metainfo.xml"
+          test -f "$RUNNER_TEMP/stage/usr/share/icons/hicolor/scalable/apps/code.clanker.StickyNotes.svg"
+          desktop-file-validate "$RUNNER_TEMP/stage/usr/share/applications/code.clanker.StickyNotes.desktop"

@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- SPDX-License-Identifier: CC0-1.0 -->
+<!-- SPDX-FileCopyrightText: 2026 clankercode contributors -->
+<component type="desktop-application">
+  <id>code.clanker.StickyNotes</id>
+  <metadata_license>CC0-1.0</metadata_license>
+  <project_license>MIT</project_license>
+
+  <name>Sticky Notes</name>
+  <summary>Markdown sticky notes for your desktop</summary>
+  <developer id="code.clanker">
+    <name>clankercode</name>
+  </developer>
+
+  <description>
+    <p>
+      Sticky Notes is a fast, native sticky-notes app for the KDE Plasma desktop. Every note is a plain
+      Markdown file with a small front-matter header, so your notes stay readable, searchable and easy to
+      sync or back up with any tool you like.
+    </p>
+    <p>Features:</p>
+    <ul>
+      <li>A notebook window with a coloured tab for each note</li>
+      <li>Markdown rendering with clickable task-list checkboxes, headings, lists and links</li>
+      <li>Pop notes out onto the desktop, either below your windows or pinned on top</li>
+      <li>Desktop notes remember their position, size and screen across restarts</li>
+      <li>Seven paper colours, archive instead of delete, and a recoverable trash</li>
+      <li>Notes are stored as plain Markdown files and update live when they are edited elsewhere</li>
+      <li>System tray integration and optional start on login</li>
+      <li>Native Wayland support through layer-shell, with X11 also supported</li>
+      <li>Starts instantly, and does not lag while you type or use CPU while idle</li>
+    </ul>
+  </description>
+
+  <launchable type="desktop-id">code.clanker.StickyNotes.desktop</launchable>
+  <provides>
+    <binary>sticky-notes</binary>
+  </provides>
+
+  <url type="homepage">https://github.com/clankercode/plasma-markdown-sticky-note</url>
+  <url type="bugtracker">https://github.com/clankercode/plasma-markdown-sticky-note/issues</url>
+  <url type="vcs-browser">https://github.com/clankercode/plasma-markdown-sticky-note</url>
+
+  <categories>
+    <category>Utility</category>
+  </categories>
+  <keywords>
+    <keyword>note</keyword>
+    <keyword>notes</keyword>
+    <keyword>sticky</keyword>
+    <keyword>markdown</keyword>
+    <keyword>memo</keyword>
+    <keyword>todo</keyword>
+  </keywords>
+
+  <screenshots>
+    <screenshot type="default">
+      <caption>Notebook window with notes in several colours</caption>
+      <image type="source">https://raw.githubusercontent.com/clankercode/plasma-markdown-sticky-note/main/docs/screenshot.png</image>
+    </screenshot>
+  </screenshots>
+
+  <requires>
+    <display_length compare="ge">360</display_length>
+  </requires>
+  <supports>
+    <control>pointing</control>
+    <control>keyboard</control>
+  </supports>
+
+  <content_rating type="oars-1.1"/>
+
+  <releases>
+    <release version="1.0.0" date="2026-11-17">
+      <description>
+        <p>First release.</p>
+      </description>
+    </release>
+  </releases>
+</component>
