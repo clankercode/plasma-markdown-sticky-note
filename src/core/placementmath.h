@@ -40,12 +40,13 @@ inline int outputAt(const QList<QRect> &outputs, QPoint p)
     return best;
 }
 
-// Clamps a position (relative to an output of size `area`) so at least MinVisible px of a note of
-// size `note` remains on that output in each direction.
+// Clamps a position (relative to an output of size `area`) so the note can always be grabbed again:
+// at least MinVisible px stays on the output horizontally and at the bottom, and the top edge never
+// goes above the output — the header strip at the top is the note's only drag handle.
 inline QPoint clamped(QPoint p, QSize area, QSize note)
 {
     p.setX(std::clamp(p.x(), MinVisible - note.width(), std::max(MinVisible - note.width(), area.width() - MinVisible)));
-    p.setY(std::clamp(p.y(), MinVisible - note.height(), std::max(MinVisible - note.height(), area.height() - MinVisible)));
+    p.setY(std::clamp(p.y(), 0, std::max(0, area.height() - MinVisible)));
     return p;
 }
 

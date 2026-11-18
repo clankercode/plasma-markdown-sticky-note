@@ -71,7 +71,10 @@ private Q_SLOTS:
         const QSize area(2560, 1440);
         QCOMPARE(clamped(QPoint(100, 100), area, kNote), QPoint(100, 100));
         QCOMPARE(clamped(QPoint(5000, 5000), area, kNote), QPoint(2560 - MinVisible, 1440 - MinVisible));
-        QCOMPARE(clamped(QPoint(-5000, -5000), area, kNote), QPoint(MinVisible - 300, MinVisible - 280));
+        QCOMPARE(clamped(QPoint(-5000, -5000), area, kNote), QPoint(MinVisible - 300, 0));
+        // The header (top strip) must never end up above the output: it's the only drag handle.
+        // 1.0.1 saved a note at y=-232 this way and it could no longer be dragged.
+        QCOMPARE(clamped(QPoint(2512, -232), area, kNote), QPoint(2512, 0));
     }
 
     // Regression for the 1.0.x teleport bug: with the compositor applying margins a couple of events
@@ -138,7 +141,7 @@ private Q_SLOTS:
         // From DP-1, dragged up above its top (y<1234) where nothing exists.
         const Placement p = settle(kUserLayout, 0, QPoint(1000, -900), kNote);
         QCOMPARE(p.output, 0);
-        QCOMPARE(p.position, QPoint(1000, MinVisible - kNote.height()));
+        QCOMPARE(p.position, QPoint(1000, 0));
         QVERIFY(QRect(QPoint(0, 0), QSize(2560, 1440)).intersects(QRect(p.position, kNote)));
     }
 
