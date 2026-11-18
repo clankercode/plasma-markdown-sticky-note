@@ -20,7 +20,9 @@ and every note stored as a plain Markdown file.
 - **Pop notes onto the desktop:** peel a note off the notebook and it becomes its own little sticky
   note. Drag it anywhere, including onto another monitor. Its position, size and screen are saved.
 - **Pin or sit on the desktop:** a popped-out note sits on the desktop layer, below your windows, by
-  default. Pin it to keep it above everything.
+  default. Pin it to keep it above everything. Double-click a popped-out note's tab in the notebook
+  to pin it on top. (Desktop notes use Wayland layer-shell, so they stay on their layer rather than
+  stacking like normal windows; that's what lets them sit on the desktop and keep their position.)
 - **Markdown:** headings, lists, **bold**/*italic*, links, `code`, code blocks, quotes, and
   clickable task-list checkboxes (`- [ ]`). Click a note to edit the raw text and press Escape to
   see it rendered again.

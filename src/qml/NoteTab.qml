@@ -20,6 +20,7 @@ Item {
     readonly property bool popped: tab.note.poppedOut
 
     signal activated()
+    signal doubleClicked()
     signal dragStarted()
     signal dragMoved(real centerY)    // dragged tab centre, in list content coordinates
     signal dragFinished()
@@ -141,6 +142,7 @@ Item {
                 tab.dragFinished()
             moved = false
         }
+        onDoubleClicked: tab.doubleClicked()
     }
 
     Loader {
@@ -149,7 +151,9 @@ Item {
             parent: tab
             x: tab.width + 2
             y: Math.round((tab.height - implicitHeight) / 2)
-            text: tab.popped ? qsTr("%1 (on the desktop)").arg(tab.note.displayTitle) : tab.note.displayTitle
+            text: !tab.popped ? tab.note.displayTitle
+                  : tab.note.pinned ? qsTr("%1 (pinned on the desktop)").arg(tab.note.displayTitle)
+                  : qsTr("%1 (on the desktop; double-click to pin on top)").arg(tab.note.displayTitle)
             visible: true
         }
     }

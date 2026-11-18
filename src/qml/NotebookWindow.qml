@@ -305,6 +305,15 @@ Window {
                 else
                     root.select(tabDelegate.note)
             }
+            // Desktop notes live on the desktop layer (under windows) unless pinned; pinning is the
+            // only way to bring one above other windows, so a double-click on its tab pins it.
+            // Deliberately not a toggle: a double-click should never send a note behind everything.
+            onDoubleClicked: {
+                if (!tabDelegate.note.poppedOut)
+                    return
+                tabDelegate.note.pinned = true
+                root.raiseDesktopNoteRequested(tabDelegate.note)
+            }
             onDragStarted: {
                 root.dragIndex = tabDelegate.index
                 root.dropIndex = tabDelegate.index
