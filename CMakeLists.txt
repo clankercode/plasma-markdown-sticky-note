@@ -2,7 +2,7 @@
 cmake_minimum_required(VERSION 3.21)
 
 project(sticky-notes
-    VERSION 1.0.1
+    VERSION 1.0.2
     DESCRIPTION "Markdown sticky notes for the KDE Plasma desktop"
     HOMEPAGE_URL "https://github.com/clankercode/plasma-markdown-sticky-note"
     LANGUAGES CXX)
@@ -52,7 +52,8 @@ set(STICKY_CORE_SOURCES
     ${PROJECT_SOURCE_DIR}/src/core/notelistmodel.cpp
     ${PROJECT_SOURCE_DIR}/src/core/notelistmodel.h
     ${PROJECT_SOURCE_DIR}/src/core/notestore.cpp
-    ${PROJECT_SOURCE_DIR}/src/core/notestore.h)
+    ${PROJECT_SOURCE_DIR}/src/core/notestore.h
+    ${PROJECT_SOURCE_DIR}/src/core/placementmath.h)
 
 if(STICKY_NOTES_BUILD_APP)
     add_subdirectory(src)

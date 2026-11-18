@@ -1,8 +1,10 @@
 // SPDX-License-Identifier: MIT
 #include "desktopplacement.h"
 #include "note.h"
+#include "placementmath.h"
 
 #include <QGuiApplication>
+#include <QLoggingCategory>
 #include <QQuickWindow>
 #include <QScreen>
 #include <QTimer>
@@ -17,6 +19,9 @@
 #include <cstring>
 #endif
 
+// Enable with QT_LOGGING_RULES="sticky.placement.debug=true".
+Q_LOGGING_CATEGORY(lcPlacement, "sticky.placement", QtWarningMsg)
+
 namespace {
 QScreen *screenNamed(const QString &name)
 {
@@ -25,6 +30,16 @@ QScreen *screenNamed(const QString &name)
             return screen;
     }
     return QGuiApplication::primaryScreen();
+}
+
+QList<QRect> outputGeometries()
+{
+    QList<QRect> rects;
+    const auto screens = QGuiApplication::screens();
+    rects.reserve(screens.size());
+    for (auto *screen : screens)
+        rects.append(screen->geometry());
+    return rects;
 }
 
 #ifdef HAVE_WAYLAND_REGISTRY
@@ -78,8 +93,15 @@ struct DesktopPlacement::Private
     bool resizing = false;
     bool committing = false;
     bool configuring = false;
-    QPoint position;
+    QPoint position;        // requested position (margins we last set), relative to `screen`
     QPoint pendingPosition;
+    // Layer-shell drag: pointer events are reported relative to the surface position the compositor
+    // has APPLIED, which lags `position` until a frame carrying the new margins is committed.
+    QPoint appliedPosition;
+    QPoint requestedSinceCommit; // last margins handed to LayerShellQt
+    QPoint inFlightFrame;        // margins carried by the frame currently being rendered
+    bool commitPending = false;  // margins requested but not yet in a rendered frame
+    bool frameInFlight = false;
     QPointF pressPoint;
     QPointF resizePress;
     QSize resizeStart;
@@ -91,10 +113,7 @@ struct DesktopPlacement::Private
     {
         if (!screen || !window)
             return p;
-        const QSize area = screen->geometry().size();
-        p.setX(std::clamp(p.x(), 48 - window->width(), std::max(48 - window->width(), area.width() - 48)));
-        p.setY(std::clamp(p.y(), 48 - window->height(), std::max(48 - window->height(), area.height() - 48)));
-        return p;
+        return PlacementMath::clamped(p, screen->geometry().size(), window->size());
     }
 
     void switchScreen(QScreen *target)
@@ -111,7 +130,7 @@ struct DesktopPlacement::Private
                 window->hide();
             window->setScreen(target);
             layer->setScreen(target);
-            layer->setMargins(QMargins(position.x(), position.y(), 0, 0));
+            applyMargins();
             if (visible)
                 window->show();
             return;
@@ -125,30 +144,55 @@ struct DesktopPlacement::Private
         if (!window || !screen)
             return;
         position = clamped(position);
+        applyMargins();
+    }
+
+    void applyMargins()
+    {
+        if (!window || !screen)
+            return;
 #ifdef HAVE_LAYERSHELL
         if (layer) {
             layer->setMargins(QMargins(position.x(), position.y(), 0, 0));
+            // set_margin is double-buffered: it only takes effect on the next wl_surface.commit,
+            // which happens when Qt renders a frame. Nothing repaints during a drag, so request one.
+            requestedSinceCommit = position;
+            commitPending = true;
+            window->update();
             return;
         }
 #endif
         window->setPosition(screen->geometry().topLeft() + position);
     }
 
+    // Layer-shell drag step: move the surface, staying on its current output. Margins may run past
+    // the output's edge while dragging; the hand-off to another output happens once, on release
+    // (switchToScreenUnderNote), because remapping a layer surface mid-drag destroys it and with it
+    // the pointer grab.
     void applyPending()
     {
         if (!window || !screen)
             return;
+        qCDebug(lcPlacement) << "applyPending: screen" << screen->name() << "from" << position << "to" << pendingPosition;
         position = pendingPosition;
-        const QPoint global = screen->geometry().topLeft() + position;
-        const QPoint center = global + QPoint(window->width() / 2, window->height() / 2);
-        if (!screen->geometry().contains(center)) {
-            for (auto *candidate : QGuiApplication::screens()) {
-                if (candidate != screen && candidate->geometry().contains(center)) {
-                    position = global - candidate->geometry().topLeft();
-                    switchScreen(candidate);
-                    break;
-                }
-            }
+        applyMargins();
+    }
+
+    // After a drag: if the note's centre now lies on another output (or in a gap nearest to one),
+    // move it there at the same global position, clamped so it stays reachable.
+    void switchToScreenUnderNote()
+    {
+        if (!window || !screen)
+            return;
+        const auto screens = QGuiApplication::screens();
+        const auto settled = PlacementMath::settle(outputGeometries(), screens.indexOf(screen), position, window->size());
+        if (settled.output < 0)
+            return applyPosition();
+        QScreen *target = screens.at(settled.output);
+        position = settled.position;
+        if (target != screen) {
+            qCDebug(lcPlacement) << "switchScreen ->" << target->name() << "position" << position;
+            switchScreen(target);
         }
         applyPosition();
     }
@@ -312,7 +356,23 @@ void DesktopPlacement::setWindow(QQuickWindow *w)
                              << connect(w, &QWindow::yChanged, this, settled)
                              << connect(w, &QWindow::widthChanged, this, settled)
                              << connect(w, &QWindow::heightChanged, this, settled)
-                             << connect(w, &QWindow::screenChanged, this, settled);
+                             << connect(w, &QWindow::screenChanged, this, settled)
+                             // afterAnimating runs on the GUI thread right before a frame is synced and
+                             // rendered: whatever margins are set by then go out with that frame's commit.
+                             << connect(w, &QQuickWindow::afterAnimating, this, [this] {
+                                    if (d->commitPending) {
+                                        d->inFlightFrame = d->requestedSinceCommit;
+                                        d->frameInFlight = true;
+                                        d->commitPending = false;
+                                    }
+                                })
+                             // frameSwapped may come from the render thread; queue it to the GUI thread.
+                             << connect(w, &QQuickWindow::frameSwapped, this, [this] {
+                                    if (d->frameInFlight) {
+                                        d->appliedPosition = d->inFlightFrame;
+                                        d->frameInFlight = false;
+                                    }
+                                }, Qt::QueuedConnection);
     }
     Q_EMIT windowChanged();
     d->configure();
@@ -373,6 +433,11 @@ void DesktopPlacement::beginDrag(const QPointF &windowLocalPos)
     if (!m_ready || !d->window || m_dragging)
         return;
     d->pressPoint = windowLocalPos;
+    d->appliedPosition = d->position;
+    d->commitPending = false;
+    d->frameInFlight = false;
+    qCDebug(lcPlacement) << "beginDrag press" << windowLocalPos << "position" << d->position
+                         << "screen" << (d->screen ? d->screen->name() : QString());
     m_dragging = true;
     Q_EMIT draggingChanged();
     if (!layerShell())
@@ -383,9 +448,13 @@ void DesktopPlacement::dragTo(const QPointF &windowLocalPos)
 {
     if (!m_dragging || !layerShell())
         return;
-    // Local coordinates already reflect the last applied move. Coalesce absolute targets,
-    // not deltas, or multiple pointer events in a frame would move the note too far.
-    d->pendingPosition = d->position + (windowLocalPos - d->pressPoint).toPoint();
+    // Pointer coordinates are relative to where the compositor has the surface NOW, which is the
+    // last position committed in a frame (appliedPosition), not the last one we asked for.
+    // Using the requested position here made every not-yet-applied move count twice, so the note
+    // ran away from the pointer. The target is absolute, so a late commit can't compound.
+    d->pendingPosition = PlacementMath::dragTarget(d->appliedPosition, windowLocalPos, d->pressPoint);
+    qCDebug(lcPlacement) << "dragTo applied" << d->appliedPosition << "local" << windowLocalPos << "press" << d->pressPoint
+                         << "position" << d->position << "pending" << d->pendingPosition;
     if (!d->marginTimer.isActive())
         d->marginTimer.start();
 }
@@ -398,6 +467,8 @@ void DesktopPlacement::endDrag()
         d->marginTimer.stop();
         d->applyPending();
     }
+    if (layerShell())
+        d->switchToScreenUnderNote();
     m_dragging = false;
     Q_EMIT draggingChanged();
     d->persist();

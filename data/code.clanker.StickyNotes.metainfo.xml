@@ -71,6 +71,11 @@
   <content_rating type="oars-1.1"/>
 
   <releases>
+    <release version="1.0.2" date="2026-11-19">
+      <description>
+        <p>Fixes desktop notes jumping away from the pointer and getting stuck when dragged between monitors on Wayland.</p>
+      </description>
+    </release>
     <release version="1.0.1" date="2026-11-19">
       <description>
         <p>Fixes the installed app failing to start with "Module StickyNotes contains no type named Main".</p>

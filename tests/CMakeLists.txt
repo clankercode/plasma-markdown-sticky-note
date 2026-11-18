@@ -17,6 +17,7 @@ sticky_add_test(tst_markdownutil)
 sticky_add_test(tst_note)
 sticky_add_test(tst_notestore)
 sticky_add_test(tst_notelistmodel)
+sticky_add_test(tst_placementmath)
 
 if(STICKY_NOTES_BUILD_APP)
     qt_add_executable(tst_application tst_application.cpp)
