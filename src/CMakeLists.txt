@@ -20,7 +20,10 @@ qt_add_qml_module(sticky-notes
     URI StickyNotes
     VERSION 1.0
     QML_FILES ${STICKY_QML_FILES}
-    NO_RESOURCE_TARGET_PATH
+    # The module must live at the default resource path (:/qt/qml/StickyNotes/) so
+    # QQmlEngine::loadFromModule() finds it when the binary is installed away from the build tree.
+    # The build tree's on-disk StickyNotes/ copy must NOT be relied on — see tst_installed.
+    OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/qml/StickyNotes
 )
 
 # Import scanning is needed to link static QML plugins. Shared Qt discovers its

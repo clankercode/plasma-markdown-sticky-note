@@ -44,7 +44,8 @@ if(STICKY_NOTES_BUILD_APP)
     endforeach()
     set_source_files_properties(${PROJECT_SOURCE_DIR}/src/qml/Theme.qml ${PROJECT_SOURCE_DIR}/src/qml/Glyphs.qml
         PROPERTIES QT_QML_SINGLETON_TYPE TRUE)
-    qt_add_qml_module(tst_ui URI StickyNotes VERSION 1.0 QML_FILES ${STICKY_QML_FILES} NO_RESOURCE_TARGET_PATH)
+    qt_add_qml_module(tst_ui URI StickyNotes VERSION 1.0 QML_FILES ${STICKY_QML_FILES}
+        OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/qml/StickyNotes)
     set_property(TARGET tst_ui PROPERTY QT_QML_MODULE_NO_IMPORT_SCAN TRUE)
     target_include_directories(tst_ui PRIVATE ${PROJECT_SOURCE_DIR}/src/core ${PROJECT_SOURCE_DIR}/src/app)
     target_link_libraries(tst_ui PRIVATE Qt6::Core Qt6::Gui Qt6::Qml Qt6::Quick Qt6::QuickControls2 Qt6::Widgets Qt6::Test)
@@ -54,4 +55,14 @@ if(STICKY_NOTES_BUILD_APP)
     endif()
     add_test(NAME tst_ui COMMAND tst_ui)
     set_tests_properties(tst_ui PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=offscreen")
+endif()
+
+# Regression test: the INSTALLED binary must start on its own, with no build tree next to it.
+# (1.0.0 shipped a binary that only worked from the build dir: "Module StickyNotes contains no type named Main".)
+if(STICKY_NOTES_BUILD_APP)
+    add_test(NAME tst_installed
+        COMMAND ${CMAKE_COMMAND}
+            -DBUILD_DIR=${PROJECT_BINARY_DIR}
+            -P ${CMAKE_CURRENT_SOURCE_DIR}/installed_smoke.cmake)
+    set_tests_properties(tst_installed PROPERTIES TIMEOUT 60)
 endif()

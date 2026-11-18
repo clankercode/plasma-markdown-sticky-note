@@ -2,7 +2,7 @@
 cmake_minimum_required(VERSION 3.21)
 
 project(sticky-notes
-    VERSION 1.0.0
+    VERSION 1.0.1
     DESCRIPTION "Markdown sticky notes for the KDE Plasma desktop"
     HOMEPAGE_URL "https://github.com/clankercode/plasma-markdown-sticky-note"
     LANGUAGES CXX)

@@ -71,6 +71,11 @@
   <content_rating type="oars-1.1"/>
 
   <releases>
+    <release version="1.0.1" date="2026-11-19">
+      <description>
+        <p>Fixes the installed app failing to start with "Module StickyNotes contains no type named Main".</p>
+      </description>
+    </release>
     <release version="1.0.0" date="2026-11-17">
       <description>
         <p>First release.</p>
